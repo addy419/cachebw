@@ -1,16 +1,28 @@
-COMPILER=NVCC
-ARCH=sm_60
+COMPILER=INTEL
+MODEL=USM
+ARCH=icelake-server
 SHMEM=0
 
 COMPILER_GNU=gcc
-COMPILER_INTEL=icc
 COMPILER_NVCC=nvcc
-CC=$(COMPILER_$(COMPILER))
 
-CFLAGS_INTEL=-std=c99 -x$(ARCH) -qopt-zmm-usage=high -qopenmp
 CFLAGS_GNU=-std=c11 -march=$(ARCH) -fopenmp
 CFLAGS_NVCC=-arch=$(ARCH) -DGPU -x cu -DSHMEM=$(SHMEM)
 
+ifeq (USM,$(MODEL))
+	COMPILER_INTEL=icpx
+	CFLAGS_INTEL=-fsycl -DSYCL_USM -DSHMEM=$(SHMEM)
+else
+ifeq (ACC,$(MODEL))
+	COMPILER_INTEL=icpx
+	CFLAGS_INTEL=-std=c99
+else
+	COMPILER_INTEL=icx
+	CFLAGS_INTEL=-std=c99 -x$(ARCH) -qopt-zmm-usage=high -qopenmp
+endif
+endif
+
+CC=$(COMPILER_$(COMPILER))
 CFLAGS = -O3 $(CFLAGS_$(COMPILER))
 
 HEADERS = $(wildcard *.h)
