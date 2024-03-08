@@ -15,12 +15,13 @@ double cache_triad(size_t n, size_t nreps) {
     sycl::device device = gpuQueue.get_device();
 
     // Print device
-    std::cout << "Running on " << device.get_info<sycl::info::device::name>()
-              << "\n";
+    // std::cout << "Running on " << device.get_info<sycl::info::device::name>()
+    //           << "\n";
 
     int num_blocks =
-        device.get_info<sycl::info::device::max_compute_units>() * 1;
-    int block_size = 1024;
+        device.get_info<sycl::info::device::max_compute_units>();
+    int block_size =
+        device.get_info<sycl::info::device::max_work_group_size>();
 
     // if we don't have enough GPU memory, don't run
     long long int max_mem =
@@ -32,15 +33,15 @@ double cache_triad(size_t n, size_t nreps) {
     }
 
     double *d_a =
-        sycl::malloc_device<double>(sizeof(double) * n * num_blocks, gpuQueue);
+        sycl::malloc_device<double>(n * num_blocks, gpuQueue);
     double *d_b =
-        sycl::malloc_device<double>(sizeof(double) * n * num_blocks, gpuQueue);
+        sycl::malloc_device<double>(n * num_blocks, gpuQueue);
     double *d_c =
-        sycl::malloc_device<double>(sizeof(double) * n * num_blocks, gpuQueue);
+        sycl::malloc_device<double>(n * num_blocks, gpuQueue);
 
     double *h_bw = (double *)malloc(sizeof(double) * num_blocks);
     double *d_bw =
-        sycl::malloc_device<double>(sizeof(double) * num_blocks, gpuQueue);
+        sycl::malloc_device<double>(num_blocks, gpuQueue);
 
     // FIXME: not sure how this will affect the result with dynamic clock rate
     double freq =
@@ -48,10 +49,10 @@ double cache_triad(size_t n, size_t nreps) {
         1e3;
 
     gpuQueue.submit([&](sycl::handler &cgh) {
-      const sycl::range<3> gridDim(num_blocks, 1, 1);
-      const sycl::range<3> blockDim(block_size, 1, 1);
+      const sycl::range<1> gridDim(num_blocks);
+      const sycl::range<1> blockDim(block_size);
       cgh.parallel_for(
-          sycl::nd_range<3>(gridDim * blockDim, blockDim), [=](sycl::nd_item<3> item) {
+          sycl::nd_range<1>(gridDim * blockDim, blockDim), [=](sycl::nd_item<1> item) {
             const int thread_idx = item.get_local_id(0);
             const int block_idx = item.get_group(0);
             const int block_dimx = item.get_local_range(0);
@@ -77,7 +78,8 @@ double cache_triad(size_t n, size_t nreps) {
               for (int i = thread_idx; i < n; i += block_dimx) {
                 a[i] += b[i] + scalar * c[i];
               }
-              item.barrier(); // Can it be more specific?
+              // This or sycl::access::fence_space::local_space
+              sycl::group_barrier(item.get_group());
             }
 
 #ifdef __SYCL_DEVICE_ONLY__
@@ -91,10 +93,10 @@ double cache_triad(size_t n, size_t nreps) {
               d_bw[block_idx] = data_size / avg_seconds;
             }
           });
-    }).wait_and_throw();
+    }).wait();
 
 
-    gpuQueue.memcpy(h_bw, d_bw, sizeof(double) * num_blocks).wait_and_throw();
+    gpuQueue.memcpy(h_bw, d_bw, sizeof(double) * num_blocks).wait();
 
     // Sum the memory bw per SM to get the aggregate memory bandwidth
     for (int i = 0; i < num_blocks; ++i) {
