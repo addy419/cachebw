@@ -1,5 +1,5 @@
 COMPILER=INTEL
-MODEL=USM
+MODEL=ACC
 ARCH=icelake-server
 SHMEM=0
 
@@ -15,7 +15,7 @@ ifeq (USM,$(MODEL))
 else
 ifeq (ACC,$(MODEL))
 	COMPILER_INTEL=icpx
-	CFLAGS_INTEL=-std=c99
+	CFLAGS_INTEL=-fsycl -DSYCL_ACC -DSHMEM=$(SHMEM)
 else
 	COMPILER_INTEL=icx
 	CFLAGS_INTEL=-std=c99 -x$(ARCH) -qopt-zmm-usage=high -qopenmp

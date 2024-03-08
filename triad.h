@@ -6,6 +6,8 @@
 #include "triad-gpu.h"
 #elif defined(SYCL_USM)
 #include "triad-sycl-usm.hpp"
+#elif defined(SYCL_ACC)
+#include "triad-sycl-acc.hpp"
 #else
 #include "triad-cpu.h"
 #endif
