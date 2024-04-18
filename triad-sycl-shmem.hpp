@@ -34,15 +34,12 @@ double cache_triad(size_t n, size_t nreps) {
         1e3;
 
     gpuQueue.submit([&](sycl::handler &cgh) {
-      const sycl::range<1> gridDim(num_blocks);
-      const sycl::range<1> blockDim(block_size);
-
       sycl::local_accessor<double> a(n, cgh);
       sycl::local_accessor<double> b(n, cgh);
       sycl::local_accessor<double> c(n, cgh);
 
       cgh.parallel_for(
-          sycl::nd_range<1>(gridDim * blockDim, blockDim), [=](sycl::nd_item<1> item) {
+          sycl::nd_range<1>(num_blocks * block_size, block_size), [=](sycl::nd_item<1> item) {
             const int thread_idx = item.get_local_id(0);
             const int block_idx = item.get_group(0);
             const int block_dimx = item.get_local_range(0);

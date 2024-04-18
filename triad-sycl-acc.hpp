@@ -22,8 +22,6 @@ double cache_triad(size_t n, size_t nreps) {
         device.get_info<sycl::info::device::max_compute_units>();
     int block_size = 1024;
 
-    std::cout << num_blocks << block_size << std::endl;
-
     // if we don't have enough GPU memory, don't run
     long long int max_mem =
         device.get_info<sycl::info::device::global_mem_size>();
@@ -46,14 +44,12 @@ double cache_triad(size_t n, size_t nreps) {
         1e3;
 
     gpuQueue.submit([&](sycl::handler &cgh) {
-      const sycl::range<1> gridDim(num_blocks);
-      const sycl::range<1> blockDim(block_size);
       sycl::accessor acc_a(d_a, cgh, sycl::read_write);
       sycl::accessor acc_b(d_b, cgh, sycl::read_write);
       sycl::accessor acc_c(d_c, cgh, sycl::read_write);
       sycl::accessor acc_bw(d_bw, cgh, sycl::write_only);
       cgh.parallel_for(
-          sycl::nd_range<1>(gridDim * blockDim, blockDim), [=](sycl::nd_item<1> item) {
+          sycl::nd_range<1>(num_blocks * block_size, block_size), [=](sycl::nd_item<1> item) {
             const int thread_idx = item.get_local_id(0);
             const int block_idx = item.get_group(0);
             const int block_dimx = item.get_local_range(0);
