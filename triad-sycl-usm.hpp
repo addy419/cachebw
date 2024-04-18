@@ -20,8 +20,7 @@ double cache_triad(size_t n, size_t nreps) {
 
     int num_blocks =
         device.get_info<sycl::info::device::max_compute_units>();
-    int block_size =
-        device.get_info<sycl::info::device::max_work_group_size>();
+    int block_size = 1024;
 
     // if we don't have enough GPU memory, don't run
     long long int max_mem =

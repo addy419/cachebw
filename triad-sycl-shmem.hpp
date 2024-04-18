@@ -20,8 +20,7 @@ double cache_triad(size_t n, size_t nreps) {
 
     int num_blocks =
         device.get_info<sycl::info::device::max_compute_units>() * 4;
-    int block_size =
-        device.get_info<sycl::info::device::max_work_group_size>();
+    int block_size = 128;
 
     if (n * 3 * sizeof(double) > device.get_info<sycl::info::device::local_mem_size>()) return -1.0;
 
