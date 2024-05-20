@@ -38,11 +38,6 @@ double cache_triad(size_t n, size_t nreps) {
     double *h_bw = (double *)malloc(sizeof(double) * num_blocks);
     sycl::buffer<double, 1> d_bw(sycl::range<1>(1 * num_blocks));
 
-    // FIXME: not sure how this will affect the result with dynamic clock rate
-    double freq =
-        (double)device.get_info<sycl::info::device::max_clock_frequency>() /
-        1e3;
-
     gpuQueue.submit([&](sycl::handler &cgh) {
       sycl::accessor acc_a(d_a, cgh, sycl::read_write);
       sycl::accessor acc_b(d_b, cgh, sycl::read_write);
@@ -83,12 +78,12 @@ double cache_triad(size_t n, size_t nreps) {
 #ifdef __SYCL_DEVICE_ONLY__
             c1 = intel_get_cycle_counter();
 #endif
-            double seconds = (((double)(c1 - c0)) / freq) / 1e9;
-            double avg_seconds = seconds / nreps;
-            double data_size = (double)n * 4.0 * sizeof(double) / 1e9;
+            double clocks = (double)(c1 - c0);
+            double avg_clocks = clocks / nreps;
+            double data_size = (double)n * 4.0 * sizeof(double);
 
             if (thread_idx == 0) {
-              acc_bw[block_idx] = data_size / avg_seconds;
+              acc_bw[block_idx] = data_size / avg_clocks;
             }
           });
     }).wait();

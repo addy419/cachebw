@@ -1,6 +1,6 @@
 COMPILER=INTEL
-MODEL=ACC
-ARCH=icelake-server
+MODEL=USM
+ARCH=sapphirerapids
 SHMEM=0
 
 COMPILER_GNU=gcc
