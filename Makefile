@@ -1,13 +1,11 @@
-COMPILER=INTEL
 MODEL=USM
-ARCH=sapphirerapids
-SHMEM=0
+OPTS=-Xlinker -z,noexecstack
 
 COMPILER_GNU=gcc
-COMPILER_NVCC=nvcc
+COMPILER_NVIDIA=nvc++
 
 CFLAGS_GNU=-std=c11 -march=$(ARCH) -fopenmp
-CFLAGS_NVCC=-arch=$(ARCH) -DGPU -x cu -DSHMEM=$(SHMEM)
+CFLAGS_NVIDIA=-gpu=$(ARCH) $(OPTS) -DGPU -cuda -DSHMEM=$(SHMEM)
 
 ifeq (USM,$(MODEL))
 	COMPILER_INTEL=icpx
