@@ -3,9 +3,11 @@ OPTS=-Xlinker -z,noexecstack
 
 COMPILER_GNU=gcc
 COMPILER_NVIDIA=nvc++
+COMPILER_AMD=hipcc
 
 CFLAGS_GNU=-std=c11 -march=$(ARCH) -fopenmp
-CFLAGS_NVIDIA=-gpu=$(ARCH) $(OPTS) -DGPU -cuda -DSHMEM=$(SHMEM)
+CFLAGS_NVIDIA=-gpu=$(ARCH) $(OPTS) -DCUDA -cuda -DSHMEM=$(SHMEM)
+CFLAGS_AMD=-DHIP $(HIPOPTS) -DSHMEM=$(SHMEM)
 
 ifeq (USM,$(MODEL))
 	COMPILER_INTEL=icpx
