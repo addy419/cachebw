@@ -9,7 +9,7 @@
 #elif SHMEM==1 && defined(HIP)
 #include "triad-hip-shmem.h"
 #elif defined(HIP)
-#include "triad-hip.h"
+#include "triad-hip.hpp"
 #elif defined(SYCL_USM)
 #include "triad-sycl-usm.hpp"
 #elif defined(SYCL_ACC)

@@ -1,7 +1,7 @@
 #include "hip/hip_runtime.h"
 #pragma once
 
-#include "cuda_utils.h"
+#include "hip_utils.hpp"
 
 __global__ void triad_kernel(double* d_a, double* d_b, double* d_c, size_t n,
                              size_t nreps, double* bw, double freq)
@@ -58,21 +58,21 @@ double cache_triad(size_t n, size_t nreps)
   double* b;
   double* c;
 
-  CUDACHK(hipMalloc((void**)&a, sizeof(double) * n * num_blks));
-  CUDACHK(hipMalloc((void**)&b, sizeof(double) * n * num_blks));
-  CUDACHK(hipMalloc((void**)&c, sizeof(double) * n * num_blks));
+  HIPCHK(hipMalloc((void**)&a, sizeof(double) * n * num_blks));
+  HIPCHK(hipMalloc((void**)&b, sizeof(double) * n * num_blks));
+  HIPCHK(hipMalloc((void**)&c, sizeof(double) * n * num_blks));
 
   double* h_bw = (double*)malloc(sizeof(double) * num_blks);
   double* d_bw;
-  CUDACHK(hipMalloc((void**)&d_bw, sizeof(double) * num_blks));
+  HIPCHK(hipMalloc((void**)&d_bw, sizeof(double) * num_blks));
 
   double freq = (double)prop.clockRate / 1e6;
 
   triad_kernel<<<num_blks, blk_sz>>>(a, b, c, n, nreps, d_bw, freq);
-  CUDACHK(hipGetLastError());
-  CUDACHK(hipDeviceSynchronize());
+  HIPCHK(hipGetLastError());
+  HIPCHK(hipDeviceSynchronize());
 
-  CUDACHK(hipMemcpy(h_bw, d_bw, sizeof(double) * num_blks,
+  HIPCHK(hipMemcpy(h_bw, d_bw, sizeof(double) * num_blks,
                      hipMemcpyDeviceToHost));
 
   // Sum the memory bw per SM to get the aggregate memory bandwidth
@@ -80,9 +80,9 @@ double cache_triad(size_t n, size_t nreps)
     tot_mem_bw += h_bw[i];
   }
 
-  CUDACHK(hipFree(a));
-  CUDACHK(hipFree(b));
-  CUDACHK(hipFree(c));
+  HIPCHK(hipFree(a));
+  HIPCHK(hipFree(b));
+  HIPCHK(hipFree(c));
 
   return tot_mem_bw;
 }

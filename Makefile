@@ -29,8 +29,8 @@ HEADERS = $(wildcard *.h)
 
 default: triad
 
-triad: cachebw.c $(HEADERS)
-	$(CC) $(CFLAGS) cachebw.c -o cachebw
+triad: cachebw.cpp $(HEADERS)
+	$(CC) $(CFLAGS) cachebw.cpp -o cachebw
 
 clean:
 	-rm -rf cachebw
